@@ -23,10 +23,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          
 
       - name: Install Dependencies & Build Web Assets
         run: |
+          cd untitled-3
           npm install
           npm run build
 
@@ -43,11 +43,12 @@ jobs:
 
       - name: Sync Web Assets to Android
         run: |
-          mkdir -p android/app/src/main/assets/public
-          cp -r dist/* android/app/src/main/assets/public/ || true
+          mkdir -p untitled-3/android/app/src/main/assets/public
+          cp -r untitled-3/dist/* untitled-3/android/app/src/main/assets/public/ || true
 
       - name: Build Android APK with Gradle
         run: |
+          cd untitled-3
           if [ -d "android" ]; then
             cd android
           fi
@@ -68,6 +69,6 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: LERZA-Player-v1.0.0-Debug-APK
+          name: LERZA-Player-v1.0.0-Debug.apk
           path: release-output/LERZA-Player-v1.0.0-Debug.apk
           retention-days: 30
