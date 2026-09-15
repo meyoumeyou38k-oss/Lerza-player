@@ -41,20 +41,28 @@ jobs:
 
       - name: Sync Web Dist to Android Assets
         run: |
-          if [ -d "dist" ] && [ -d "app/src/main/assets" ]; then
+          if [ -d "dist" ] && [ -d "app-studio/app/src/main/assets" ]; then
+            echo "Syncing fresh dist into app-studio/app/src/main/assets..."
+            cp -r dist/* app-studio/app/src/main/assets/
+          elif [ -d "dist" ] && [ -d "app/src/main/assets" ]; then
             echo "Syncing fresh dist into app/src/main/assets..."
-            cp -r dist/* app/src/main/assets/
             cp -r dist/* app/src/main/assets/
           fi
 
       - name: Grant Execute Permission to Gradle Wrapper
         run: |
+          if [ -d "app-studio" ]; then
+            cd app-studio
+          fi
           if [ -f "./gradlew" ]; then
             chmod +x ./gradlew
           fi
 
       - name: Build APK with Gradle
         run: |
+          if [ -d "app-studio" ]; then
+            cd app-studio
+          fi
           ./gradlew clean assembleDebug --no-daemon --stacktrace
 
       - name: Locate and Collect Generated APK
