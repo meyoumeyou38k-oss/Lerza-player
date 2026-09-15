@@ -21,8 +21,8 @@ jobs:
 
       - name: Extract Project ZIP
         run: |
-          if [ -f "new2.zip" ]; then
-            unzip -o new2.zip
+          if [ -f "new3.zip" ]; then
+            unzip -o new3.zip
           fi
 
       - name: Setup Node.js
