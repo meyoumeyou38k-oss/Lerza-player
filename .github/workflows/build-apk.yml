@@ -49,14 +49,12 @@ jobs:
 
       - name: Grant Execute Permission to Gradle Wrapper
         run: |
-          cd app-studio
           if [ -f "./gradlew" ]; then
             chmod +x ./gradlew
           fi
 
       - name: Build APK with Gradle
         run: |
-          cd app-studio
           ./gradlew clean assembleDebug --no-daemon --stacktrace
 
       - name: Locate and Collect Generated APK
