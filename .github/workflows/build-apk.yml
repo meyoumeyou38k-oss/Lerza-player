@@ -30,10 +30,11 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install Dependencies & Build Web Assets
+      - name: Clean & Install Dependencies
         run: |
           cd untitled-3
-          npm install
+          rm -rf node_modules package-lock.json
+          npm install --force
           npm run build
 
       - name: Set up Java JDK 17
