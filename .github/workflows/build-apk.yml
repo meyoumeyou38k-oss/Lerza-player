@@ -19,6 +19,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Extract Project ZIP
+        run: |
+          if [ -f "new2.zip" ]; then
+            unzip -o new2.zip
+          fi
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
