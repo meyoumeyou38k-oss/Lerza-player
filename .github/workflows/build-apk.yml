@@ -12,6 +12,10 @@ jobs:
     name: Build Lerza Player APK
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: app-studio
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -30,7 +34,7 @@ jobs:
             npm install
             npm run build
           else
-            echo "No root package.json detected, using committed pre-built assets."
+            echo "No package.json detected in app-studio, proceeding with existing assets."
           fi
 
       - name: Set up Java JDK 17
@@ -41,29 +45,23 @@ jobs:
 
       - name: Sync Web Dist to Android Assets
         run: |
-          if [ -d "dist" ] && [ -d "app-studio/app/src/main/assets" ]; then
-            echo "Syncing fresh dist into app-studio/app/src/main/assets..."
-            cp -r dist/* app-studio/app/src/main/assets/
-          elif [ -d "dist" ] && [ -d "app/src/main/assets" ]; then
+          if [ -d "dist" ] && [ -d "app/src/main/assets" ]; then
             echo "Syncing fresh dist into app/src/main/assets..."
             cp -r dist/* app/src/main/assets/
           fi
 
       - name: Grant Execute Permission to Gradle Wrapper
         run: |
-          if [ -d "app-studio" ]; then
-            cd app-studio
-          fi
           if [ -f "./gradlew" ]; then
             chmod +x ./gradlew
+          else
+            echo "Error: gradlew file not found in app-studio!"
+            ls -la
+            exit 1
           fi
 
       - name: Build APK with Gradle
-        run: |
-          if [ -d "app-studio" ]; then
-            cd app-studio
-          fi
-          ./gradlew clean assembleDebug --no-daemon --stacktrace
+        run: ./gradlew clean assembleDebug --no-daemon --stacktrace
 
       - name: Locate and Collect Generated APK
         run: |
@@ -82,5 +80,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Lerza-Player-v1.0-Debug-APK
-          path: release-output/Lerza-Player-v1.0-debug.apk
+          path: app-studio/release-output/Lerza-Player-v1.0-debug.apk
           retention-days: 0
