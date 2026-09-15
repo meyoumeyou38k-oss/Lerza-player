@@ -12,10 +12,6 @@ jobs:
     name: Build Lerza Player APK
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: app-studio
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -29,12 +25,15 @@ jobs:
 
       - name: Install Node Dependencies & Build Web App
         run: |
+          if [ -d "app-studio" ]; then
+            cd app-studio
+          fi
           if [ -f "package.json" ]; then
-            echo "Building latest Web App from source..."
+            echo "Building Web App..."
             npm install
             npm run build
           else
-            echo "No package.json detected in app-studio, proceeding with existing assets."
+            echo "No package.json found, skipping npm build."
           fi
 
       - name: Set up Java JDK 17
@@ -45,23 +44,35 @@ jobs:
 
       - name: Sync Web Dist to Android Assets
         run: |
-          if [ -d "dist" ] && [ -d "app/src/main/assets" ]; then
-            echo "Syncing fresh dist into app/src/main/assets..."
-            cp -r dist/* app/src/main/assets/
+          ROOT_DIR=$(pwd)
+          if [ -d "$ROOT_DIR/dist" ] && [ -d "$ROOT_DIR/app-studio/app/src/main/assets" ]; then
+            echo "Syncing dist to app-studio/app/src/main/assets..."
+            cp -r $ROOT_DIR/dist/* $ROOT_DIR/app-studio/app/src/main/assets/
+          elif [ -d "$ROOT_DIR/app-studio/dist" ] && [ -d "$ROOT_DIR/app-studio/app/src/main/assets" ]; then
+            echo "Syncing app-studio/dist to app-studio/app/src/main/assets..."
+            cp -r $ROOT_DIR/app-studio/dist/* $ROOT_DIR/app-studio/app/src/main/assets/
           fi
 
       - name: Grant Execute Permission to Gradle Wrapper
         run: |
+          if [ -d "app-studio" ]; then
+            cd app-studio
+          fi
           if [ -f "./gradlew" ]; then
             chmod +x ./gradlew
           else
-            echo "Error: gradlew file not found in app-studio!"
+            echo "Error: gradlew file not found!"
+            pwd
             ls -la
             exit 1
           fi
 
       - name: Build APK with Gradle
-        run: ./gradlew clean assembleDebug --no-daemon --stacktrace
+        run: |
+          if [ -d "app-studio" ]; then
+            cd app-studio
+          fi
+          ./gradlew clean assembleDebug --no-daemon --stacktrace
 
       - name: Locate and Collect Generated APK
         run: |
@@ -80,5 +91,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Lerza-Player-v1.0-Debug-APK
-          path: app-studio/release-output/Lerza-Player-v1.0-debug.apk
+          path: '**/release-output/Lerza-Player-v1.0-debug.apk'
           retention-days: 0
