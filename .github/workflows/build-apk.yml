@@ -7,64 +7,64 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
   build:
-    name: Build Android APK
+    name: Build Lerza Player APK
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-      - name: Extract Project ZIP
-        run: |
-          if [ -f "new3.zip" ]; then
-            unzip -o new3.zip
-          fi
-
-      - name: Setup Node.js
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Clean & Install Dependencies
+      - name: Install Node Dependencies & Build Web App
         run: |
-          cd untitled-3
-          rm -rf node_modules package-lock.json
-          npm install --force
-          npm run build
+          if [ -f "package.json" ]; then
+            echo "Building latest Web App from source..."
+            npm install
+            npm run build
+          else
+            echo "No root package.json detected, using committed pre-built assets."
+          fi
 
       - name: Set up Java JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
           java-version: '17'
+          distribution: 'temurin'
 
-      - name: Setup Gradle 8.4
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.4'
-
-      - name: Sync Web Assets to Android
+      - name: Sync Web Dist to Android Assets
         run: |
-          mkdir -p untitled-3/android/app/src/main/assets/public
-          cp -r untitled-3/dist/* untitled-3/android/app/src/main/assets/public/ || true
+          if [ -d "dist" ] && [ -d "app/src/main/assets" ]; then
+            echo "Syncing fresh dist into app/src/main/assets..."
+            rm -rf app/src/main/assets/assets
+            cp -r dist/* app/src/main/assets/
+          fi
 
-      - name: Build Android APK with Gradle
+      - name: Grant Execute Permission to Gradle Wrapper
         run: |
-          cd untitled-3
-          chmod +x ./gradlew || true
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+          fi
+
+      - name: Build APK with Gradle
+        run: |
+          ./gradlew clean assembleDebug --no-daemon --stacktrace
 
       - name: Locate and Collect Generated APK
         run: |
           mkdir -p release-output
           APK_PATH=$(find . -type f -name "*.apk" | head -n 1)
           if [ -n "$APK_PATH" ]; then
-            cp "$APK_PATH" release-output/LERZA-Player-v1.0.0-Debug.apk
+            echo "Found APK at: $APK_PATH"
+            cp "$APK_PATH" release-output/Lerza-Player-v1.0.1-Debug.apk
+            ls -lh release-output/Lerza-Player-v1.0.1-Debug.apk
           else
             echo "Error: No APK file found after build!"
             exit 1
@@ -73,6 +73,6 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: LERZA-Player-v1.0.0-Debug.apk
-          path: release-output/LERZA-Player-v1.0.0-Debug.apk
+          name: Lerza-Player-v1.0.1-Debug-APK
+          path: release-output/Lerza-Player-v1.0.1-Debug.apk
           retention-days: 30
