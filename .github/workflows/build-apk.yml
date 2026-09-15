@@ -56,9 +56,6 @@ jobs:
       - name: Build Android APK with Gradle
         run: |
           cd untitled-3
-          if [ -d "android" ]; then
-            cd android
-          fi
           chmod +x ./gradlew || true
           ./gradlew assembleDebug --no-daemon --stacktrace
 
