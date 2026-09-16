@@ -52,12 +52,45 @@ jobs:
       - name: Sync Web Dist to Android Assets
         run: |
           ROOT_DIR=$(pwd)
-          if [ -d "$ROOT_DIR/dist" ] && [ -d "$ROOT_DIR/app-studio/app/src/main/assets" ]; then
-            echo "Syncing dist to app-studio/app/src/main/assets..."
-            cp -r $ROOT_DIR/dist/* $ROOT_DIR/app-studio/app/src/main/assets/
-          elif [ -d "$ROOT_DIR/app-studio/dist" ] && [ -d "$ROOT_DIR/app-studio/app/src/main/assets" ]; then
-            echo "Syncing app-studio/dist to app-studio/app/src/main/assets..."
-            cp -r $ROOT_DIR/app-studio/dist/* $ROOT_DIR/app-studio/app/src/main/assets/
+          
+          # 1. Determine assets directory
+          ASSETS_DIR=""
+          if [ -d "$ROOT_DIR/app-studio/app/src/main/assets" ]; then
+            ASSETS_DIR="$ROOT_DIR/app-studio/app/src/main/assets"
+          elif [ -d "$ROOT_DIR/app/src/main/assets" ]; then
+            ASSETS_DIR="$ROOT_DIR/app/src/main/assets"
+          fi
+
+          if [ -n "$ASSETS_DIR" ]; then
+            mkdir -p "$ASSETS_DIR"
+            
+            # 2. Copy built web assets from dist
+            if [ -d "$ROOT_DIR/dist" ]; then
+              echo "Syncing $ROOT_DIR/dist to $ASSETS_DIR..."
+              cp -r $ROOT_DIR/dist/* "$ASSETS_DIR/"
+            elif [ -d "$ROOT_DIR/app-studio/dist" ]; then
+              echo "Syncing $ROOT_DIR/app-studio/dist to $ASSETS_DIR..."
+              cp -r $ROOT_DIR/app-studio/dist/* "$ASSETS_DIR/"
+            fi
+
+            # 3. Explicitly ensure public assets (like update-check.json) are copied
+            if [ -d "$ROOT_DIR/public" ]; then
+              echo "Copying extra files from root public directory..."
+              cp -r $ROOT_DIR/public/* "$ASSETS_DIR/"
+            elif [ -d "$ROOT_DIR/app-studio/public" ]; then
+              echo "Copying extra files from app-studio/public directory..."
+              cp -r $ROOT_DIR/app-studio/public/* "$ASSETS_DIR/"
+            fi
+
+            # 4. Verify update-check.json presence
+            if [ -f "$ASSETS_DIR/update-check.json" ]; then
+              echo "SUCCESS: update-check.json verified in Android assets!"
+            else
+              echo "WARNING: update-check.json not found in assets!"
+            fi
+          else
+            echo "Error: Android assets directory not found!"
+            exit 1
           fi
 
       - name: Grant Execute Permission to Gradle Wrapper
