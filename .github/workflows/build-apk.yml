@@ -120,8 +120,8 @@ jobs:
           APK_PATH=$(find . -type f -name "*.apk" | head -n 1)
           if [ -n "$APK_PATH" ]; then
             echo "Found APK at: $APK_PATH"
-            cp "$APK_PATH" release-output/Lerza-Player-v1.0-debug.apk
-            ls -la release-output/Lerza-Player-v1.0-debug.apk
+            cp "$APK_PATH" release-output/Lerza-Player-v1.0.0-debug.apk
+            ls -la release-output/Lerza-Player-v1.0.0-debug.apk
           else
             echo "Error: No APK file found after build!"
             exit 1
@@ -130,6 +130,6 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Lerza-Player-v1.0-Debug-APK
-          path: '**/release-output/Lerza-Player-v1.0-debug.apk'
+          name: Lerza-Player-v1.0.0-Debug-APK
+          path: '**/release-output/Lerza-Player-v1.0.0-debug.apk'
           retention-days: 0
